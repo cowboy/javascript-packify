@@ -4,11 +4,11 @@ Just a little something I'm working on (totally unfinished).
 
 Kyle Simpson's [JS1k demo](http://js1k.com/demo/424)  
 [before](http://benalman.com/code/projects/javascript-packify/examples/getify.min.js) (1024b)  
-[after](http://benalman.com/code/projects/javascript-packify/examples/getify.pck.js) (970b)
+[after](http://benalman.com/code/projects/javascript-packify/examples/getify.pck.js) (970b) - [test it out](http://benalman.com/code/projects/javascript-packify/examples/getify.html)
 
 Organ1k, my [JS1k demo](http://js1k.com/demo/450)  
 [before](http://benalman.com/code/projects/javascript-packify/examples/organ1k.min.js) (1024b)  
-[after](http://benalman.com/code/projects/javascript-packify/examples/organ1k.pck.js) (1008b)
+[after](http://benalman.com/code/projects/javascript-packify/examples/organ1k.pck.js) (1008b) - [test it out](http://benalman.com/code/projects/javascript-packify/examples/organ1k.html)
 
 ## License ##
 Copyright (c) 2010 "Cowboy" Ben Alman  
