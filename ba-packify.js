@@ -33,6 +33,10 @@ function packify( input ) {
   // Replace any non-space whitespace with spaces (shouldn't be necessary).
   input = input.replace( /\s+/g, ' ' );
   
+  function get_savings( string, count ) {
+    return ( string.length - 1 ) * ( count - 1 ) - 2;
+  };
+  
   // Look for recurring patterns between 2 and 20 characters in length (could
   // have been between 2 and len / 2, but that gets REALLY slow).
   for ( chunk_size = 2, len = input.length; chunk_size <= 20; chunk_size++ ) {
@@ -52,7 +56,7 @@ function packify( input ) {
       // the array as new potentials will just overwrite previous potentials.
       // TODO: test to see if saving ALL matches / incrementing a counter is
       // faster than doing the regexp match thing. It probably is.
-      if ( matches.length > 1 ) {
+      if ( get_savings( chunk, matches.length ) >= 0 ) {
         potentials[ chunk ] = matches.length;
       }
     }
@@ -67,8 +71,17 @@ function packify( input ) {
   // Sort the array of potentials such that replacements that will yield the
   // highest byte savings come first.
   potentials_arr.sort(function(a,b){
-    return b.count * ( b.pattern.length - 1 ) - a.count * ( a.pattern.length - 1 );
+    var savings = get_savings( b.pattern, b.count ) - get_savings( a.pattern, a.count ),
+      count = a.count - b.count;
+    return savings != 0 ? savings : count != 0 ? count : b.pattern > a.pattern ? -1 : 1;
   });
+  
+  /*
+  for ( i = 0, len = potentials_arr.length; i < len; i++ ) {
+    potential = potentials_arr[i];
+    console.log( i, potential.count, potential.pattern, get_savings( potential.pattern, potential.count ) );
+  }
+  */
   
   // Loop over all the potential patterns (unless we run out of replacement
   // chars first). TODO: experiment with 127 < char_code < 256.
@@ -78,7 +91,7 @@ function packify( input ) {
     // Ensure this potential pattern still actually matches something in the
     // input string.
     re = RegExp( potential.pattern.replace( /(\W)/g, '\\$1' ), 'g' );
-    if ( re.test( input ) ) {
+    if ( ( matches = input.match( re ) || [] ) && get_savings( potential.pattern, matches.length ) > 0 ) {
       
       // Increment the current replacement character (skipping ASCII 10 and 13).
       char_code = ++char_code == 10 ? 11 : char_code == 13 ? 14 : char_code; //char_code == 32 ? 128 : char_code;
@@ -86,7 +99,7 @@ function packify( input ) {
       // Get the replacement char.
       char = String.fromCharCode( char_code );
       
-      console.log( i, char_code, char, potential.count, potential.pattern );
+      console.log( i, char_code, char, matches.length, potential.pattern, get_savings( potential.pattern, matches.length ) );
       
       // Add the char + pattern combo into the map of replacements.
       replace_map.push( char + potential.pattern );
@@ -107,7 +120,7 @@ function packify( input ) {
 
 // Organ1k:
 
-//packify('(function(J){var A,v,F,D,q,n,G=J.body.style,f=J.getElementById("c"),d=f.getContext("2d"),p=32,I=360,e=Math,B=e.min,b=e.sin,c=e.cos,l=e.random,z=e.PI*2,o=z/I,t=0,a=0,C=0,k=0,h=G.margin=0,H=2,s=2,r=3,E=6,g=p,u=[],i=[],m="f001fa01ff0107010ff100f14081e8e".split(1),j=l(G.overflow="hidden")*I,w=l(onmousemove=function(x){g=0;q=x.clientX-F;n=x.clientY-D})<.5?1:-1;setInterval(function(L,x,K,y,M){if(!(++t%p)){while(k==~~(y=l(M=l())*6));k=~~y;y<.4?w=-w:y<2?h++:y<3?C=M*7:y<4?H=M*8+1:y<5?s=M*3+1:r=B(E=M*8+4,l()*5+5)-2}A=f.width=innerWidth;v=f.height=innerHeight;L=B(F=A/2,D=v/2);x=L/I;L-=20*x;if(++g>p){if(C<1){j-=H*w*4;q=b(j*o)*L;n=c(j*o)*L}else{j-=H*w*2;y=e.abs(q=b(j*o)*L);q=y*c(M=e.atan2(0,q)+j*o/C);n=y*b(M)}}for(K=0;K<p;){y=u[K]=u[K]||{x:0,y:0};M=u[K-1];y.x=K?y.x+(M.x-y.x)/s:q;y.y=K++?y.y+(M.y-y.y)/s:n}for(K=0;y=u[K*4];){i[a++%I]={s:1,d:1,c:m[(h+K++)%8],x:y.x,y:y.y}}d.fillRect(K=0,0,A,v);while(y=i[K++]){M=y.s+=y.d;y.d=M>E?-1:M<r?1:y.d;d.beginPath(d.fillStyle="#"+y.c);d.fill(d.arc(F+y.x,D+y.y,M*x,0,z,0))}},p)})(document)')
+packify('(function(J){var A,v,F,D,q,n,G=J.body.style,f=J.getElementById("c"),d=f.getContext("2d"),p=32,I=360,e=Math,B=e.min,b=e.sin,c=e.cos,l=e.random,z=e.PI*2,o=z/I,t=0,a=0,C=0,k=0,h=G.margin=0,H=2,s=2,r=3,E=6,g=p,u=[],i=[],m="f001fa01ff0107010ff100f14081e8e".split(1),j=l(G.overflow="hidden")*I,w=l(onmousemove=function(x){g=0;q=x.clientX-F;n=x.clientY-D})<.5?1:-1;setInterval(function(L,x,K,y,M){if(!(++t%p)){while(k==~~(y=l(M=l())*6));k=~~y;y<.4?w=-w:y<2?h++:y<3?C=M*7:y<4?H=M*8+1:y<5?s=M*3+1:r=B(E=M*8+4,l()*5+5)-2}A=f.width=innerWidth;v=f.height=innerHeight;L=B(F=A/2,D=v/2);x=L/I;L-=20*x;if(++g>p){if(C<1){j-=H*w*4;q=b(j*o)*L;n=c(j*o)*L}else{j-=H*w*2;y=e.abs(q=b(j*o)*L);q=y*c(M=e.atan2(0,q)+j*o/C);n=y*b(M)}}for(K=0;K<p;){y=u[K]=u[K]||{x:0,y:0};M=u[K-1];y.x=K?y.x+(M.x-y.x)/s:q;y.y=K++?y.y+(M.y-y.y)/s:n}for(K=0;y=u[K*4];){i[a++%I]={s:1,d:1,c:m[(h+K++)%8],x:y.x,y:y.y}}d.fillRect(K=0,0,A,v);while(y=i[K++]){M=y.s+=y.d;y.d=M>E?-1:M<r?1:y.d;d.beginPath(d.fillStyle="#"+y.c);d.fill(d.arc(F+y.x,D+y.y,M*x,0,z,0))}},p)})(document)')
 
 // getify's JS1k entry:
 
