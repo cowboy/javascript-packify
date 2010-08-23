@@ -1,11 +1,13 @@
 /*!
- * JavaScript Packify - v0.1pre - 8/22/2010
+ * JavaScript Packify - v0.1pre - 8/23/2010
  * http://benalman.com/
  * 
  * Copyright (c) 2010 "Cowboy" Ben Alman
  * Dual licensed under the MIT and GPL licenses.
  * http://benalman.com/about/license/
  */
+
+// Currently tested in WebKit console, todo: node.js version.
 
 function packify( input ) {
   var len,
@@ -24,16 +26,18 @@ function packify( input ) {
     char,
     output;
   
-  // Single quotes need to be escaped, so use double-quotes in the input.
+  // Single quotes need to be escaped, so use double-quotes in your input
+  // source whenever possible.
   input = input.replace( /'/g, "\\'" );
   
-  // Replace any non-space whitespace with spaces.
+  // Replace any non-space whitespace with spaces (shouldn't be necessary).
   input = input.replace( /\s+/g, ' ' );
   
-  // Look for recurring patterns between 2 and 20 characters in length.
+  // Look for recurring patterns between 2 and 20 characters in length (could
+  // have been between 2 and len / 2, but that gets REALLY slow).
   for ( chunk_size = 2, len = input.length; chunk_size <= 20; chunk_size++ ) {
     
-    // Go from the beginning to the end of the input string.
+    // Start at the beginning of the input string, go to the end.
     for ( i = 0; i < len - chunk_size; i++ ) {
       
       // Grab the "chunk" at the current position.
@@ -45,7 +49,9 @@ function packify( input ) {
       
       // If 2+ matches, save this chunk as a potential pattern. By using an
       // object instead of an array, we don't have to worry about uniquing
-      // the array.
+      // the array as new potentials will just overwrite previous potentials.
+      // TODO: test to see if saving ALL matches / incrementing a counter is
+      // faster than doing the regexp match thing. It probably is.
       if ( matches.length > 1 ) {
         potentials[ chunk ] = matches.length;
       }
@@ -54,19 +60,19 @@ function packify( input ) {
   
   // Since we need to sort the potentials, create an array.
   for ( i in potentials ) {
-    potentials_arr.push({ pattern: i, count: potentials[ i ] });
+    potentials.hasOwnProperty( i ) 
+      && potentials_arr.push({ pattern: i, count: potentials[ i ] });
   }
   
-  // Sort the array of potentials such that replacements with the highest byte
-  // savings come first.
+  // Sort the array of potentials such that replacements that will yield the
+  // highest byte savings come first.
   potentials_arr.sort(function(a,b){
     return b.count * ( b.pattern.length - 1 ) - a.count * ( a.pattern.length - 1 );
   });
   
-  char_code = 0;
-  
-  // Loop over all the potential patterns (unless we run out of replacement chars).
-  for ( i = 0, len = potentials_arr.length; i < len && char_code < 31; i++ ) {
+  // Loop over all the potential patterns (unless we run out of replacement
+  // chars first). TODO: experiment with 127 < char_code < 256.
+  for ( i = 0, char_code = 0, len = potentials_arr.length; i < len && char_code < 31; i++ ) {
     potential = potentials_arr[i];
     
     // Ensure this potential pattern still actually matches something in the
