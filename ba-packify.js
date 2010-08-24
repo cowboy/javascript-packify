@@ -23,7 +23,7 @@ function packify( input ) {
     potentials = {},
     potentials_arr = [],
     
-    replace_map = [],
+    map = '',
     char_code,
     char,
     output;
@@ -127,21 +127,21 @@ function packify( input ) {
       
       //console.log( char_code, char, matches.length, chunk, savings );
       
-      // Add the char + pattern combo into the map of replacements.
-      replace_map.push( char + chunk );
-      
       // Replace the pattern with the replacement character.
       script = script.replace( re, char );
+      
+      // Add the char + pattern combo into the map of replacements.
+      map += char + chunk;
     }
   }
   
   // For each group of 1 low ASCII char / 1+ regular ASCII chars combo in the
-  // replace_map string, replace the low ASCII char in the script string with
-  // the remaining regular ASCII chars, then eval the script string. Using
-  // with in this manner ensures that the temporary _ var won't be leaked.
+  // map string, replace the low ASCII char in the script string with the
+  // remaining regular ASCII chars, then eval the script string. Using with in
+  // this manner ensures that the temporary _ var won't be leaked.
   output = ""
     + "with({_:'" + script + "'})"
-    +   "'" + replace_map.join('') + "'.replace(/.([ -~]+)/g,function(x,y){"
+    +   "'" + map + "'.replace(/.([ -~]+)/g,function(x,y){"
     +     "_=_.replace(RegExp(x[0],'g'),y)"
     +   "}),"
     +   "eval(_)";
