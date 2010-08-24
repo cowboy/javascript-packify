@@ -1,6 +1,6 @@
 # Packify: Something like a JavaScript packer #
 
-Just a little something I'm <s>wasting my time</s> working on.
+Just a little something I'm wasting my time with.
 
  * this is a work in progress, so YMMV
  * probably only useful for not-too-small, but not-too-big bits of code
